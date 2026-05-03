@@ -33,12 +33,6 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState({})
 
   useEffect(() => {
-    if (!auth || !db) {
-      setUser(null)
-      setProfile({})
-      return undefined
-    }
-
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser)
       if (!currentUser) return

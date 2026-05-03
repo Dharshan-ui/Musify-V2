@@ -8,8 +8,6 @@ const Navbar = () => {
   const [user, setUser] = useState(null)
 
   const handleSignOut = async () => {
-    if (!auth) return
-
     try {
       await signOut(auth)
     } catch (error) {
@@ -34,11 +32,6 @@ const Navbar = () => {
   }
 
   useEffect(() => {
-    if (!auth) {
-      setUser(null)
-      return undefined
-    }
-
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
     })
