@@ -53,7 +53,7 @@ const UploadPhoto = () => {
   return (
     <div style={{ minHeight: '100vh', paddingTop: '64px' }}>
       <ProfileSidebar />
-      <main style={{ marginLeft: '240px', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '48px' }}>
+      <main className="md:ml-[240px]" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: '48px' }}>
         <h1 style={{
           fontSize: '32px', fontWeight: '700', textAlign: 'center', marginBottom: '8px',
           background: 'linear-gradient(135deg, var(--color-secondary), var(--color-accent))',

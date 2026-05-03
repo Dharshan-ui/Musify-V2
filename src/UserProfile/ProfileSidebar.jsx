@@ -11,6 +11,7 @@ const links = [
 
 const ProfileSidebar = () => (
   <aside
+    className="hidden md:block"
     style={{
       position: 'fixed',
       left: 0,

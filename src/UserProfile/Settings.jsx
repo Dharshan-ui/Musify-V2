@@ -120,7 +120,7 @@ const Settings = () => {
   return (
     <div style={{ minHeight: '100vh', paddingTop: '64px' }}>
       <ProfileSidebar />
-      <main style={{ marginLeft: '240px', padding: '32px' }}>
+      <main className="md:ml-[240px]" style={{ padding: '32px' }}>
         <h1 style={{
           fontSize: '32px', fontWeight: '700', textAlign: 'center', marginBottom: '8px',
           background: 'linear-gradient(135deg, var(--color-secondary), var(--color-accent))',

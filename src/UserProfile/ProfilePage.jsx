@@ -55,7 +55,7 @@ const ProfilePage = () => {
   return (
     <div style={{ minHeight: '100vh', paddingTop: '64px' }}>
       <ProfileSidebar />
-      <main style={{ marginLeft: '240px', padding: '32px' }}>
+      <main className="md:ml-[240px]" style={{ padding: '32px' }}>
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div
             style={{
