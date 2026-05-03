@@ -7,7 +7,6 @@ import {
   createId,
   deleteMediaUrl,
   getStoredAdmin,
-  hasAdminPermission,
   resolveMediaUrl,
   saveStoredAdmin
 } from '../utils/adminStore'

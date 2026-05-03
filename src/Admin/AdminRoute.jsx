@@ -1,39 +1,23 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { auth } from '../backend/firebase'
+import { Navigate } from 'react-router-dom'
 import { onAuthStateChanged } from 'firebase/auth'
-import { toast } from 'react-hot-toast'
+import { auth } from '../backend/firebase'
 
 const AdminRoute = ({ children }) => {
-  const [isAuthorized, setIsAuthorized] = useState(null)
-  const navigate = useNavigate()
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL
+  const [status, setStatus] = useState('loading')
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        // Not logged in
-        navigate('/login')
-        setIsAuthorized(false)
-      } else if (user.email !== adminEmail) {
-        // Logged in but not admin
-        toast.error('Access denied. Admin only.')
-        navigate('/')
-        setIsAuthorized(false)
-      } else {
-        // Admin user
-        setIsAuthorized(true)
-      }
+      setStatus(user?.email === import.meta.env.VITE_ADMIN_EMAIL ? 'admin' : 'denied')
     })
-
     return () => unsubscribe()
-  }, [navigate, adminEmail])
+  }, [])
 
-  if (isAuthorized === null) {
-    return null // Loading state
-  }
-
-  return isAuthorized ? children : null
+  if (status === 'loading') 
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-muted)' }}>Checking permissions...</div>
+  if (status === 'denied') 
+    return <Navigate to="/admin/login" replace />
+  return children
 }
 
 export default AdminRoute
