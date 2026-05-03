@@ -7,6 +7,11 @@ const AdminRoute = ({ children }) => {
   const [status, setStatus] = useState('loading')
 
   useEffect(() => {
+    if (!auth) {
+      setStatus('denied')
+      return undefined
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setStatus(user?.email === import.meta.env.VITE_ADMIN_EMAIL ? 'admin' : 'denied')
     })
