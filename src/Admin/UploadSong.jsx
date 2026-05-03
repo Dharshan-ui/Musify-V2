@@ -5,7 +5,6 @@ import AdminSidebar from './AdminSidebar'
 import {
   createId,
   getStoredAdmin,
-  hasAdminPermission,
   saveStoredAdmin
 } from '../utils/adminStore'
 import { uploadToCloudinary } from '../utils/cloudinary'
@@ -98,11 +97,6 @@ const UploadSong = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
-    if (!hasAdminPermission('publish_content')) {
-      toast.error('You do not have permission to upload songs')
-      return
-    }
 
     if (!formData.albumId) {
       toast.error('Please select an album')

@@ -7,7 +7,6 @@ import {
   createId,
   deleteMediaUrl,
   getStoredAdmin,
-  hasAdminPermission,
   resolveMediaUrl,
   saveStoredAdmin
 } from '../utils/adminStore'
@@ -166,11 +165,6 @@ const ManageAlbums = () => {
   const handleUpdateAlbum = async (event, albumId) => {
     event.preventDefault()
 
-    if (!hasAdminPermission('create_album')) {
-      toast.error('You do not have permission to edit albums')
-      return
-    }
-
     const album = albums.find((item) => item.id === albumId)
     const editForm = albumEditForms[albumId]
 
@@ -264,11 +258,6 @@ const ManageAlbums = () => {
 
   const handleUpdateTrack = async (event, albumId, trackId) => {
     event.preventDefault()
-
-    if (!hasAdminPermission('publish_content')) {
-      toast.error('You do not have permission to edit tracks')
-      return
-    }
 
     const album = albums.find((item) => item.id === albumId)
     const track = album?.tracks?.find((item) => item.id === trackId)
@@ -375,11 +364,6 @@ const ManageAlbums = () => {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
-    if (!hasAdminPermission('create_album')) {
-      toast.error('You do not have permission to create albums')
-      return
-    }
-
     if (!coverFile) {
       toast.error('Please select a cover image')
       return
@@ -432,11 +416,6 @@ const ManageAlbums = () => {
   }
 
   const deleteAlbum = async (albumId) => {
-    if (!hasAdminPermission('delete_album')) {
-      toast.error('You do not have permission to delete albums')
-      return
-    }
-
     const albumToDelete = albums.find((album) => album.id === albumId)
 
     if (albumToDelete) {
@@ -459,11 +438,6 @@ const ManageAlbums = () => {
   }
 
   const deleteTrack = async (albumId, trackId) => {
-    if (!hasAdminPermission('delete_album')) {
-      toast.error('You do not have permission to delete tracks')
-      return
-    }
-
     const album = albums.find((item) => item.id === albumId)
     const track = album?.tracks?.find((item) => item.id === trackId)
 
@@ -523,11 +497,6 @@ const ManageAlbums = () => {
 
   const handleAddTrack = async (event, albumId) => {
     event.preventDefault()
-
-    if (!hasAdminPermission('publish_content')) {
-      toast.error('You do not have permission to publish tracks')
-      return
-    }
 
     const trackForm = trackForms[albumId] || {}
 
