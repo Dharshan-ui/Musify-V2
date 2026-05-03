@@ -17,17 +17,11 @@ const ForgotPassword = () => {
     setErrorMessage('')
 
     try {
-      console.log('Sending password reset email to:', email)
-      console.log('Firebase auth:', auth)
-
       await sendPasswordResetEmail(auth, email)
-      console.log('Password reset email sent successfully')
       setSuccess(true)
       toast.success('Reset email sent! Check your inbox.')
     } catch (error) {
-      console.error('Password reset error:', error)
-      console.error('Error code:', error.code)
-      console.error('Error message:', error.message)
+      console.error('Password reset error:', error.code)
       setErrorMessage(error.message || 'Failed to send reset email')
       toast.error(error.message || 'Failed to send reset email')
     } finally {
