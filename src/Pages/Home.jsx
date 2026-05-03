@@ -29,14 +29,14 @@ const Home = () => {
 
       try {
         const q = query(
-          collection(db, 'albums'),
+          collection(db, 'music_musify2'),
           orderBy('createdAt', 'desc'),
           limit(8)
         )
         const snapshot = await getDocs(q)
         const albumsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
+          ...doc.data(),
+          id: doc.id
         }))
 
         setAlbums(albumsData)
@@ -194,7 +194,7 @@ const Home = () => {
                         }}
                       >
                         <img
-                          src={album.coverUrl}
+                          src={album.coverImageUrl}
                           alt={album.title}
                           style={{
                             width: '100%',
@@ -232,7 +232,7 @@ const Home = () => {
                               fontWeight: '500'
                             }}
                           >
-                            {album.songs?.length || 0} songs
+                            {album.tracks?.length || 0} songs
                           </p>
                         </div>
                       </div>

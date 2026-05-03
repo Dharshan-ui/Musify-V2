@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
+import { collection, addDoc, doc, updateDoc, deleteDoc, getDoc, getDocs } from 'firebase/firestore'
 import AdminSidebar from './AdminSidebar'
 import {
-  createId,
-  getStoredAdmin,
-  saveStoredAdmin
+  createId
 } from '../utils/adminStore'
+import { db } from '../backend/firebase'
 import { uploadToCloudinary } from '../utils/cloudinary'
 
 const inputStyle = {
@@ -30,7 +30,7 @@ const labelStyle = {
 }
 
 const UploadSong = () => {
-  const [admin, setAdmin] = useState(() => getStoredAdmin())
+  const [albums, setAlbums] = useState([])
   const [formData, setFormData] = useState({
     title: '',
     albumId: '',
@@ -42,7 +42,14 @@ const UploadSong = () => {
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploading, setUploading] = useState(false)
 
-  const albums = admin.albums || []
+  useEffect(() => {
+    const loadAlbums = async () => {
+      const snapshot = await getDocs(collection(db, 'music_musify2'))
+      setAlbums(snapshot.docs.map((item) => ({ ...item.data(), id: item.id })))
+    }
+
+    loadAlbums()
+  }, [])
 
   const handleInputChange = (e) => {
     setFormData({
@@ -131,16 +138,19 @@ const UploadSong = () => {
         genre: formData.genre
       }
 
-      const updatedAdmin = saveStoredAdmin({
-        ...admin,
-        albums: albums.map((album) => (
-          album.id === formData.albumId
-            ? { ...album, tracks: [...(album.tracks || []), newTrack] }
-            : album
-        ))
-      })
+      const updatedTracksArray = [...(selectedAlbum?.tracks || []), newTrack]
 
-      setAdmin(updatedAdmin)
+      console.log('Updating album:', formData.albumId, 'with tracks:', updatedTracksArray)
+      try {
+        await updateDoc(doc(db, 'music_musify2', formData.albumId), { tracks: updatedTracksArray })
+      } catch (error) {
+        console.error('Firestore update failed:', error)
+        throw error
+      }
+
+      setAlbums(albums.map((album) => (
+        album.id === formData.albumId ? { ...album, tracks: updatedTracksArray } : album
+      )))
       setUploadProgress(100)
       toast.success('Song added to album!')
       resetForm()

@@ -74,9 +74,9 @@ const SongCard = ({ songData, trackNumber, album }) => {
               boxShadow: isCurrentSong ? '0 0 22px rgba(59, 108, 244, 0.24)' : 'none'
             }}
           >
-            {songData.albumArt ? (
+            {songData.songCardImageUrl ? (
               <img
-                src={songData.albumArt}
+                src={songData.songCardImageUrl}
                 alt={songData.title}
                 style={{
                   width: '100%',

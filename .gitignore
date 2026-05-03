@@ -41,3 +41,4 @@ logs/
 .cache/
 .parcel-cache
 .turbo/
+.vercel

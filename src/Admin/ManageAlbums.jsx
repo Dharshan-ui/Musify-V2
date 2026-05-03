@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { collection, addDoc, doc, updateDoc, deleteDoc, getDoc, getDocs } from 'firebase/firestore'
 import AdminSidebar from './AdminSidebar'
 import {
   createId,
   deleteMediaUrl,
-  getStoredAdmin,
-  resolveMediaUrl,
-  saveStoredAdmin
+  resolveMediaUrl
 } from '../utils/adminStore'
+import { db } from '../backend/firebase'
 import { uploadToCloudinary } from '../utils/cloudinary'
 
 const inputStyle = {
@@ -33,7 +33,7 @@ const labelStyle = {
 }
 
 const ManageAlbums = () => {
-  const [admin, setAdmin] = useState(() => getStoredAdmin())
+  const [albums, setAlbums] = useState([])
   const [formData, setFormData] = useState({
     title: '',
     artist: '',
@@ -52,7 +52,14 @@ const ManageAlbums = () => {
   const [trackEditForms, setTrackEditForms] = useState({})
   const [savingEditId, setSavingEditId] = useState('')
 
-  const albums = admin.albums || []
+  useEffect(() => {
+    const loadAlbums = async () => {
+      const snapshot = await getDocs(collection(db, 'music_musify2'))
+      setAlbums(snapshot.docs.map((item) => ({ ...item.data(), id: item.id })))
+    }
+
+    loadAlbums()
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -88,11 +95,6 @@ const ManageAlbums = () => {
 
   const handleBlur = (event) => {
     event.target.style.borderColor = 'var(--color-border)'
-  }
-
-  const persistAdmin = (nextAdmin) => {
-    const savedAdmin = saveStoredAdmin(nextAdmin)
-    setAdmin(savedAdmin)
   }
 
   const startEditAlbum = (album) => {
@@ -148,21 +150,18 @@ const ManageAlbums = () => {
         coverPublicId = coverUpload.publicId
       }
 
-      persistAdmin({
-        ...admin,
-        albums: albums.map((item) => (
-          item.id === albumId
-            ? {
-                ...item,
-                title: editForm.title,
-                artist: editForm.artist,
-                year: Number(editForm.year),
-                coverImageUrl,
-                coverPublicId
-              }
-            : item
-        ))
-      })
+      const updatedAlbum = {
+        title: editForm.title,
+        artist: editForm.artist,
+        year: Number(editForm.year),
+        coverImageUrl,
+        coverPublicId
+      }
+
+      await updateDoc(doc(db, 'music_musify2', albumId), updatedAlbum)
+      setAlbums(albums.map((item) => (
+        item.id === albumId ? { ...item, ...updatedAlbum } : item
+      )))
       setEditingAlbumId('')
       toast.success('Album updated')
     } catch (error) {
@@ -272,30 +271,24 @@ const ManageAlbums = () => {
         }
       }
 
-      persistAdmin({
-        ...admin,
-        albums: albums.map((item) => (
-          item.id === albumId
-            ? {
-                ...item,
-                tracks: (item.tracks || []).map((song) => (
-                  song.id === trackId
-                    ? {
-                        ...song,
-                        title: editForm.title,
-                        duration: editForm.duration,
-                        genre: editForm.genre,
-                        audioFileUrl,
-                        audioPublicId,
-                        songCardImageUrl,
-                        songCardPublicId
-                      }
-                    : song
-                ))
-              }
-            : item
-        ))
-      })
+      const updatedTrack = {
+        ...track,
+        title: editForm.title,
+        duration: editForm.duration,
+        genre: editForm.genre,
+        audioFileUrl,
+        audioPublicId,
+        songCardImageUrl,
+        songCardPublicId
+      }
+      const updatedTracksArray = (album.tracks || []).map((song) => (
+        song.id === trackId ? updatedTrack : song
+      ))
+
+      await updateDoc(doc(db, 'music_musify2', albumId), { tracks: updatedTracksArray })
+      setAlbums(albums.map((item) => (
+        item.id === albumId ? { ...item, tracks: updatedTracksArray } : item
+      )))
       setEditingTrackKey('')
       toast.success('Track updated')
     } catch (error) {
@@ -338,10 +331,8 @@ const ManageAlbums = () => {
         createdAt: new Date().toISOString()
       }
 
-      persistAdmin({
-        ...admin,
-        albums: [newAlbum, ...albums]
-      })
+      const albumDoc = await addDoc(collection(db, 'music_musify2'), newAlbum)
+      setAlbums([{ ...newAlbum, id: albumDoc.id }, ...albums])
       setFormData({ title: '', artist: '', year: '' })
       setCoverFile(null)
       toast.success('Album created successfully')
@@ -364,10 +355,8 @@ const ManageAlbums = () => {
       ]))
     }
 
-    persistAdmin({
-      ...admin,
-      albums: albums.filter((album) => album.id !== albumId)
-    })
+    await deleteDoc(doc(db, 'music_musify2', albumId))
+    setAlbums(albums.filter((album) => album.id !== albumId))
     toast.success('Album deleted')
   }
 
@@ -380,14 +369,12 @@ const ManageAlbums = () => {
       await deleteMediaUrl(track.songCardImageUrl)
     }
 
-    persistAdmin({
-      ...admin,
-      albums: albums.map((item) => (
-        item.id === albumId
-          ? { ...item, tracks: (item.tracks || []).filter((song) => song.id !== trackId) }
-          : item
-      ))
-    })
+    const updatedTracksArray = (album.tracks || []).filter((song) => song.id !== trackId)
+
+    await updateDoc(doc(db, 'music_musify2', albumId), { tracks: updatedTracksArray })
+    setAlbums(albums.map((item) => (
+      item.id === albumId ? { ...item, tracks: updatedTracksArray } : item
+    )))
     toast.success('Track deleted')
   }
 
@@ -480,14 +467,12 @@ const ManageAlbums = () => {
         genre: trackForm.genre
       }
 
-      persistAdmin({
-        ...admin,
-        albums: albums.map((album) => (
-          album.id === albumId
-            ? { ...album, tracks: [...(album.tracks || []), newTrack] }
-            : album
-        ))
-      })
+      const updatedTracksArray = [...(album.tracks || []), newTrack]
+
+      await updateDoc(doc(db, 'music_musify2', albumId), { tracks: updatedTracksArray })
+      setAlbums(albums.map((album) => (
+        album.id === albumId ? { ...album, tracks: updatedTracksArray } : album
+      )))
       setTrackForms({
         ...trackForms,
         [albumId]: {

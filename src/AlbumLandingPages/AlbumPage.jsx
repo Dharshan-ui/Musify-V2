@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import SongCard from './SongCard'
 import { db, isFirebaseReady } from '../backend/firebase'
-import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
+import { doc, getDoc } from 'firebase/firestore'
 import { getPublicAdminAlbums } from '../utils/adminStore'
 
 const AlbumPage = () => {
@@ -33,23 +33,14 @@ const AlbumPage = () => {
       }
 
       try {
-        const albumDoc = await getDoc(doc(db, 'albums', id))
+        const albumDoc = await getDoc(doc(db, 'music_musify2', id))
 
         if (albumDoc.exists()) {
           const albumData = { id: albumDoc.id, ...albumDoc.data() }
+          console.log('album data:', albumData)
+          console.log('tracks:', albumData.tracks)
           setAlbum(albumData)
-
-          const songsQuery = query(
-            collection(db, 'songs'),
-            where('albumId', '==', id)
-          )
-          const songsSnapshot = await getDocs(songsQuery)
-          const songsData = songsSnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }))
-
-          setSongs(songsData)
+          setSongs(albumData.tracks || [])
         } else {
           setAlbum(null)
           setSongs([])
@@ -112,7 +103,7 @@ const AlbumPage = () => {
           }}
         >
           <img
-            src={album.coverUrl}
+            src={album.coverImageUrl}
             alt={album.title}
             style={{
               width: '220px',

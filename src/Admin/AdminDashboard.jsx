@@ -1,13 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Disc, Music, Users } from 'lucide-react'
+import { collection, getDocs } from 'firebase/firestore'
 import AdminSidebar from './AdminSidebar'
+import { db } from '../backend/firebase'
 import { getStoredAdmin, resolveMediaUrl } from '../utils/adminStore'
 
 const AdminDashboard = () => {
   const [admin] = useState(() => getStoredAdmin())
-  const albums = admin.albums || []
+  const [albums, setAlbums] = useState([])
   const [coverUrls, setCoverUrls] = useState({})
+
+  useEffect(() => {
+    const loadAlbums = async () => {
+      const snapshot = await getDocs(collection(db, 'music_musify2'))
+      setAlbums(snapshot.docs.map((item) => ({ ...item.data(), id: item.id })))
+    }
+
+    loadAlbums()
+  }, [])
 
   const stats = useMemo(() => ({
     totalAlbums: albums.length,
