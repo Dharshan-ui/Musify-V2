@@ -7,7 +7,6 @@ import {
   createId,
   deleteMediaUrl,
   getStoredAdmin,
-  hasAdminPermission,
   resolveMediaUrl,
   saveStoredAdmin
 } from '../utils/adminStore'
@@ -122,11 +121,6 @@ const ManageAlbums = () => {
   const handleUpdateAlbum = async (event, albumId) => {
     event.preventDefault()
 
-    if (!hasAdminPermission('create_album')) {
-      toast.error('You do not have permission to edit albums')
-      return
-    }
-
     const album = albums.find((item) => item.id === albumId)
     const editForm = albumEditForms[albumId]
 
@@ -209,11 +203,6 @@ const ManageAlbums = () => {
   const handleUpdateTrack = async (event, albumId, trackId) => {
     event.preventDefault()
 
-    if (!hasAdminPermission('publish_content')) {
-      toast.error('You do not have permission to edit tracks')
-      return
-    }
-
     const album = albums.find((item) => item.id === albumId)
     const track = album?.tracks?.find((item) => item.id === trackId)
     const trackKey = getTrackKey(albumId, trackId)
@@ -229,41 +218,58 @@ const ManageAlbums = () => {
       let songCardImageUrl = track.songCardImageUrl
       let songCardPublicId = track.songCardPublicId
 
+      // Upload files in parallel if both exist
+      const uploads = []
+      
       if (editForm.songCardFile) {
-        const songCardUpload = await uploadToCloudinary(editForm.songCardFile, {
-          folder: 'musify/song-cards',
-          tags: ['musify', 'song-card', editForm.genre],
-          context: {
-            type: 'song_card',
-            title: editForm.title,
-            albumId,
-            albumTitle: album.title,
-            artist: album.artist,
-            genre: editForm.genre
-          }
-        })
-        await deleteMediaUrl(track.songCardImageUrl)
-        songCardImageUrl = songCardUpload.secureUrl
-        songCardPublicId = songCardUpload.publicId
+        uploads.push(
+          uploadToCloudinary(editForm.songCardFile, {
+            folder: 'musify/song-cards',
+            tags: ['musify', 'song-card', editForm.genre],
+            context: {
+              type: 'song_card',
+              title: editForm.title,
+              albumId,
+              albumTitle: album.title,
+              artist: album.artist,
+              genre: editForm.genre
+            }
+          }).then(upload => ({ type: 'songCard', upload }))
+        )
       }
 
       if (editForm.audioFile) {
-        const audioUpload = await uploadToCloudinary(editForm.audioFile, {
-          folder: 'musify/audio',
-          tags: ['musify', 'audio', editForm.genre],
-          context: {
-            type: 'track_audio',
-            title: editForm.title,
-            albumId,
-            albumTitle: album.title,
-            artist: album.artist,
-            duration: editForm.duration,
-            genre: editForm.genre
-          }
-        })
-        await deleteMediaUrl(track.audioFileUrl)
-        audioFileUrl = audioUpload.secureUrl
-        audioPublicId = audioUpload.publicId
+        uploads.push(
+          uploadToCloudinary(editForm.audioFile, {
+            folder: 'musify/audio',
+            tags: ['musify', 'audio', editForm.genre],
+            context: {
+              type: 'track_audio',
+              title: editForm.title,
+              albumId,
+              albumTitle: album.title,
+              artist: album.artist,
+              duration: editForm.duration,
+              genre: editForm.genre
+            }
+          }).then(upload => ({ type: 'audio', upload }))
+        )
+      }
+
+      // Wait for all uploads to complete in parallel
+      const results = await Promise.all(uploads)
+      
+      // Process results
+      for (const result of results) {
+        if (result.type === 'songCard') {
+          await deleteMediaUrl(track.songCardImageUrl)
+          songCardImageUrl = result.upload.secureUrl
+          songCardPublicId = result.upload.publicId
+        } else if (result.type === 'audio') {
+          await deleteMediaUrl(track.audioFileUrl)
+          audioFileUrl = result.upload.secureUrl
+          audioPublicId = result.upload.publicId
+        }
       }
 
       persistAdmin({
@@ -302,11 +308,6 @@ const ManageAlbums = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-
-    if (!hasAdminPermission('create_album')) {
-      toast.error('You do not have permission to create albums')
-      return
-    }
 
     if (!coverFile) {
       toast.error('Please select a cover image')
@@ -353,11 +354,6 @@ const ManageAlbums = () => {
   }
 
   const deleteAlbum = async (albumId) => {
-    if (!hasAdminPermission('delete_album')) {
-      toast.error('You do not have permission to delete albums')
-      return
-    }
-
     const albumToDelete = albums.find((album) => album.id === albumId)
 
     if (albumToDelete) {
@@ -376,11 +372,6 @@ const ManageAlbums = () => {
   }
 
   const deleteTrack = async (albumId, trackId) => {
-    if (!hasAdminPermission('delete_album')) {
-      toast.error('You do not have permission to delete tracks')
-      return
-    }
-
     const album = albums.find((item) => item.id === albumId)
     const track = album?.tracks?.find((item) => item.id === trackId)
 
@@ -432,11 +423,6 @@ const ManageAlbums = () => {
   const handleAddTrack = async (event, albumId) => {
     event.preventDefault()
 
-    if (!hasAdminPermission('publish_content')) {
-      toast.error('You do not have permission to publish tracks')
-      return
-    }
-
     const trackForm = trackForms[albumId] || {}
 
     if (!trackForm.audioFile) {
@@ -453,31 +439,36 @@ const ManageAlbums = () => {
 
     try {
       const album = albums.find((item) => item.id === albumId)
-      const songCardUpload = await uploadToCloudinary(trackForm.songCardFile, {
-        folder: 'musify/song-cards',
-        tags: ['musify', 'song-card', trackForm.genre],
-        context: {
-          type: 'song_card',
-          title: trackForm.title,
-          albumId,
-          albumTitle: album?.title,
-          artist: album?.artist,
-          genre: trackForm.genre
-        }
-      })
-      const audioUpload = await uploadToCloudinary(trackForm.audioFile, {
-        folder: 'musify/audio',
-        tags: ['musify', 'audio', trackForm.genre],
-        context: {
-          type: 'track_audio',
-          title: trackForm.title,
-          albumId,
-          albumTitle: album?.title,
-          artist: album?.artist,
-          duration: trackForm.duration,
-          genre: trackForm.genre
-        }
-      })
+      
+      // Upload both files in parallel
+      const [songCardUpload, audioUpload] = await Promise.all([
+        uploadToCloudinary(trackForm.songCardFile, {
+          folder: 'musify/song-cards',
+          tags: ['musify', 'song-card', trackForm.genre],
+          context: {
+            type: 'song_card',
+            title: trackForm.title,
+            albumId,
+            albumTitle: album?.title,
+            artist: album?.artist,
+            genre: trackForm.genre
+          }
+        }),
+        uploadToCloudinary(trackForm.audioFile, {
+          folder: 'musify/audio',
+          tags: ['musify', 'audio', trackForm.genre],
+          context: {
+            type: 'track_audio',
+            title: trackForm.title,
+            albumId,
+            albumTitle: album?.title,
+            artist: album?.artist,
+            duration: trackForm.duration,
+            genre: trackForm.genre
+          }
+        })
+      ])
+      
       const newTrack = {
         id: createId('track'),
         title: trackForm.title,

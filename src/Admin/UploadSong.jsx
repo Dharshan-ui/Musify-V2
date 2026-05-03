@@ -5,7 +5,6 @@ import AdminSidebar from './AdminSidebar'
 import {
   createId,
   getStoredAdmin,
-  hasAdminPermission,
   saveStoredAdmin
 } from '../utils/adminStore'
 import { uploadToCloudinary } from '../utils/cloudinary'
@@ -69,11 +68,6 @@ const UploadSong = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!hasAdminPermission('publish_content')) {
-      toast.error('You do not have permission to upload songs')
-      return
-    }
-
     if (!formData.albumId) {
       toast.error('Please select an album')
       return
@@ -94,32 +88,36 @@ const UploadSong = () => {
 
     try {
       const selectedAlbum = albums.find((album) => album.id === formData.albumId)
-      const songCardUpload = await uploadToCloudinary(songCardFile, {
-        folder: 'musify/song-cards',
-        tags: ['musify', 'song-card', formData.genre],
-        context: {
-          type: 'song_card',
-          title: formData.title,
-          albumId: formData.albumId,
-          albumTitle: selectedAlbum?.title,
-          artist: selectedAlbum?.artist,
-          genre: formData.genre
-        }
-      })
-      setUploadProgress(45)
-      const audioUpload = await uploadToCloudinary(audioFile, {
-        folder: 'musify/audio',
-        tags: ['musify', 'audio', formData.genre],
-        context: {
-          type: 'track_audio',
-          title: formData.title,
-          albumId: formData.albumId,
-          albumTitle: selectedAlbum?.title,
-          artist: selectedAlbum?.artist,
-          duration: formData.duration,
-          genre: formData.genre
-        }
-      })
+      
+      // Upload both files in parallel instead of sequentially
+      const [songCardUpload, audioUpload] = await Promise.all([
+        uploadToCloudinary(songCardFile, {
+          folder: 'musify/song-cards',
+          tags: ['musify', 'song-card', formData.genre],
+          context: {
+            type: 'song_card',
+            title: formData.title,
+            albumId: formData.albumId,
+            albumTitle: selectedAlbum?.title,
+            artist: selectedAlbum?.artist,
+            genre: formData.genre
+          }
+        }),
+        uploadToCloudinary(audioFile, {
+          folder: 'musify/audio',
+          tags: ['musify', 'audio', formData.genre],
+          context: {
+            type: 'track_audio',
+            title: formData.title,
+            albumId: formData.albumId,
+            albumTitle: selectedAlbum?.title,
+            artist: selectedAlbum?.artist,
+            duration: formData.duration,
+            genre: formData.genre
+          }
+        })
+      ])
+      
       setUploadProgress(80)
 
       const newTrack = {

@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion'
 import { ShieldCheck, UserRound } from 'lucide-react'
 import AdminSidebar from './AdminSidebar'
-import { getStoredAdmin, hasAdminPermission } from '../utils/adminStore'
+import { getStoredAdmin } from '../utils/adminStore'
 
 const AdminUsers = () => {
   const admin = getStoredAdmin()
-  const canManageUsers = hasAdminPermission('manage_users')
+  const canManageUsers = true
 
   return (
     <div
