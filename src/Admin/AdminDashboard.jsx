@@ -3,21 +3,43 @@ import { motion } from 'framer-motion'
 import { Disc, Music, Users } from 'lucide-react'
 import AdminSidebar from './AdminSidebar'
 import { getStoredAdmin, resolveMediaUrl } from '../utils/adminStore'
+import { isMusicStoreReady, listAlbumsWithSongs } from '../utils/musicStore'
 
 const AdminDashboard = () => {
   const [admin] = useState(() => getStoredAdmin())
-  const albums = admin.albums || []
+  const [albums, setAlbums] = useState(() => admin.albums || [])
   const [coverUrls, setCoverUrls] = useState({})
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadAlbums = async () => {
+      if (!isMusicStoreReady()) return
+
+      try {
+        const firestoreAlbums = await listAlbumsWithSongs()
+        if (isMounted) setAlbums(firestoreAlbums)
+      } catch (error) {
+        console.error('Error loading dashboard albums:', error)
+      }
+    }
+
+    loadAlbums()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const stats = useMemo(() => ({
     totalAlbums: albums.length,
-    totalSongs: albums.reduce((total, album) => total + (album.tracks?.length || 0), 0),
+    totalSongs: albums.reduce((total, album) => total + (album.songCount || album.tracks?.length || 0), 0),
     totalUsers: 1
   }), [albums])
 
   const recentAlbums = useMemo(() => (
     [...albums]
-      .sort((first, second) => new Date(second.createdAt) - new Date(first.createdAt))
+      .sort((first, second) => (second.createdAtMillis || 0) - (first.createdAtMillis || 0))
       .slice(0, 5)
   ), [albums])
 
@@ -201,7 +223,7 @@ const AdminDashboard = () => {
                         fontSize: '13px'
                       }}
                     >
-                      {album.artist} - {album.year} - {album.tracks?.length || 0} tracks
+                      {album.artist} - {album.year} - {album.songCount || album.tracks?.length || 0} tracks
                     </div>
                   </div>
                 </div>

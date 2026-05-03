@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { db, isFirebaseReady } from '../backend/firebase'
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore'
 import { getPublicAdminAlbums } from '../utils/adminStore'
+import { isMusicStoreReady, listAlbums } from '../utils/musicStore'
 
 const Home = () => {
   const [albums, setAlbums] = useState([])
@@ -13,39 +12,19 @@ const Home = () => {
     const fetchAlbums = async () => {
       setLoading(true)
 
+      if (isMusicStoreReady()) {
+        try {
+          setAlbums(await listAlbums(8))
+          setLoading(false)
+          return
+        } catch (error) {
+          console.error('Error fetching live albums:', error)
+        }
+      }
+
       const localAlbums = await getPublicAdminAlbums()
-
-      if (localAlbums.length > 0) {
-        setAlbums(localAlbums)
-        setLoading(false)
-        return
-      }
-
-      if (!isFirebaseReady()) {
-        setAlbums([])
-        setLoading(false)
-        return
-      }
-
-      try {
-        const q = query(
-          collection(db, 'albums'),
-          orderBy('createdAt', 'desc'),
-          limit(8)
-        )
-        const snapshot = await getDocs(q)
-        const albumsData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-
-        setAlbums(albumsData)
-      } catch (error) {
-        console.error('Error fetching albums:', error)
-        setAlbums([])
-      } finally {
-        setLoading(false)
-      }
+      setAlbums(localAlbums)
+      setLoading(false)
     }
 
     fetchAlbums()
@@ -232,7 +211,7 @@ const Home = () => {
                               fontWeight: '500'
                             }}
                           >
-                            {album.songs?.length || 0} songs
+                            {album.songCount ?? album.songs?.length ?? 0} songs
                           </p>
                         </div>
                       </div>

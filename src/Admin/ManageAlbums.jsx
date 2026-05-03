@@ -12,6 +12,16 @@ import {
   saveStoredAdmin
 } from '../utils/adminStore'
 import { uploadToCloudinary } from '../utils/cloudinary'
+import {
+  createAlbumMetadata,
+  createSongMetadata,
+  deleteAlbumMetadata,
+  deleteSongMetadata,
+  isMusicStoreReady,
+  listAlbumsWithSongs,
+  updateAlbumMetadata,
+  updateSongMetadata
+} from '../utils/musicStore'
 
 const inputStyle = {
   height: '52px',
@@ -52,8 +62,41 @@ const ManageAlbums = () => {
   const [editingTrackKey, setEditingTrackKey] = useState('')
   const [trackEditForms, setTrackEditForms] = useState({})
   const [savingEditId, setSavingEditId] = useState('')
+  const [loadingAlbums, setLoadingAlbums] = useState(true)
 
-  const albums = admin.albums || []
+  const [albums, setAlbums] = useState(() => admin.albums || [])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadAlbums = async () => {
+      if (!isMusicStoreReady()) {
+        setLoadingAlbums(false)
+        return
+      }
+
+      try {
+        const firestoreAlbums = await listAlbumsWithSongs()
+
+        if (isMounted) {
+          setAlbums(firestoreAlbums)
+          const savedAdmin = saveStoredAdmin({ ...admin, albums: firestoreAlbums })
+          setAdmin(savedAdmin)
+        }
+      } catch (error) {
+        console.error('Error loading albums:', error)
+        toast.error('Could not load live albums')
+      } finally {
+        if (isMounted) setLoadingAlbums(false)
+      }
+    }
+
+    loadAlbums()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -94,6 +137,7 @@ const ManageAlbums = () => {
   const persistAdmin = (nextAdmin) => {
     const savedAdmin = saveStoredAdmin(nextAdmin)
     setAdmin(savedAdmin)
+    setAlbums(savedAdmin.albums || [])
   }
 
   const startEditAlbum = (album) => {
@@ -154,6 +198,17 @@ const ManageAlbums = () => {
         coverPublicId = coverUpload.publicId
       }
 
+      if (isMusicStoreReady()) {
+        await updateAlbumMetadata(albumId, {
+          title: editForm.title,
+          artist: editForm.artist,
+          year: Number(editForm.year),
+          coverUrl: coverImageUrl,
+          coverImageUrl,
+          coverPublicId
+        })
+      }
+
       persistAdmin({
         ...admin,
         albums: albums.map((item) => (
@@ -163,6 +218,7 @@ const ManageAlbums = () => {
                 title: editForm.title,
                 artist: editForm.artist,
                 year: Number(editForm.year),
+                coverUrl: coverImageUrl,
                 coverImageUrl,
                 coverPublicId
               }
@@ -266,6 +322,20 @@ const ManageAlbums = () => {
         audioPublicId = audioUpload.publicId
       }
 
+      if (isMusicStoreReady()) {
+        await updateSongMetadata(trackId, {
+          title: editForm.title,
+          duration: editForm.duration,
+          genre: editForm.genre,
+          audioUrl: audioFileUrl,
+          audioFileUrl,
+          audioPublicId,
+          songCardImageUrl,
+          songCardPublicId,
+          albumArt: songCardImageUrl || album.coverUrl || album.coverImageUrl || ''
+        })
+      }
+
       persistAdmin({
         ...admin,
         albums: albums.map((item) => (
@@ -279,10 +349,12 @@ const ManageAlbums = () => {
                         title: editForm.title,
                         duration: editForm.duration,
                         genre: editForm.genre,
+                        audioUrl: audioFileUrl,
                         audioFileUrl,
                         audioPublicId,
                         songCardImageUrl,
-                        songCardPublicId
+                        songCardPublicId,
+                        albumArt: songCardImageUrl
                       }
                     : song
                 ))
@@ -331,10 +403,17 @@ const ManageAlbums = () => {
         title: formData.title,
         artist: formData.artist,
         year: Number(formData.year),
+        coverUrl: coverUpload.secureUrl,
         coverImageUrl: coverUpload.secureUrl,
         coverPublicId: coverUpload.publicId,
         tracks: [],
+        songs: [],
+        songCount: 0,
         createdAt: new Date().toISOString()
+      }
+
+      if (isMusicStoreReady()) {
+        await createAlbumMetadata(newAlbum)
       }
 
       persistAdmin({
@@ -368,6 +447,10 @@ const ManageAlbums = () => {
       ]))
     }
 
+    if (isMusicStoreReady()) {
+      await deleteAlbumMetadata(albumId)
+    }
+
     persistAdmin({
       ...admin,
       albums: albums.filter((album) => album.id !== albumId)
@@ -389,11 +472,20 @@ const ManageAlbums = () => {
       await deleteMediaUrl(track.songCardImageUrl)
     }
 
+    if (isMusicStoreReady()) {
+      await deleteSongMetadata(albumId, trackId)
+    }
+
     persistAdmin({
       ...admin,
       albums: albums.map((item) => (
         item.id === albumId
-          ? { ...item, tracks: (item.tracks || []).filter((song) => song.id !== trackId) }
+          ? {
+              ...item,
+              tracks: (item.tracks || []).filter((song) => song.id !== trackId),
+              songs: (item.songs || item.tracks || []).filter((song) => song.id !== trackId),
+              songCount: Math.max((item.songCount || item.tracks?.length || 1) - 1, 0)
+            }
           : item
       ))
     })
@@ -482,18 +574,29 @@ const ManageAlbums = () => {
         id: createId('track'),
         title: trackForm.title,
         duration: trackForm.duration,
+        audioUrl: audioUpload.secureUrl,
         audioFileUrl: audioUpload.secureUrl,
         audioPublicId: audioUpload.publicId,
         songCardImageUrl: songCardUpload.secureUrl,
         songCardPublicId: songCardUpload.publicId,
+        albumArt: songCardUpload.secureUrl,
         genre: trackForm.genre
+      }
+
+      if (isMusicStoreReady()) {
+        await createSongMetadata(album, newTrack)
       }
 
       persistAdmin({
         ...admin,
         albums: albums.map((album) => (
           album.id === albumId
-            ? { ...album, tracks: [...(album.tracks || []), newTrack] }
+            ? {
+                ...album,
+                tracks: [...(album.tracks || []), newTrack],
+                songs: [...(album.songs || album.tracks || []), newTrack],
+                songCount: (album.songCount || album.tracks?.length || 0) + 1
+              }
             : album
         ))
       })
@@ -1200,7 +1303,7 @@ const ManageAlbums = () => {
             ) : (
               <div className="text-center py-8">
                 <p style={{ color: 'var(--color-muted)' }}>
-                  No albums found. Create your first album above!
+                  {loadingAlbums ? 'Loading albums...' : 'No albums found. Create your first album above!'}
                 </p>
               </div>
             )}
