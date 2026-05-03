@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { setDoc, doc, serverTimestamp } from 'firebase/firestore'
+import { db } from '../backend/firebase'
 import AdminSidebar from './AdminSidebar'
 import {
   createId,
@@ -147,6 +149,17 @@ const ManageAlbums = () => {
         coverImageUrl = coverUpload.secureUrl
         coverPublicId = coverUpload.publicId
       }
+
+      // Update in Firestore
+      await setDoc(doc(db, 'albums', albumId), {
+        title: editForm.title,
+        artist: editForm.artist,
+        year: Number(editForm.year),
+        coverImageUrl,
+        coverPublicId,
+        tracks: album.tracks || [],
+        updatedAt: serverTimestamp()
+      }, { merge: true })
 
       persistAdmin({
         ...admin,
@@ -337,6 +350,17 @@ const ManageAlbums = () => {
         tracks: [],
         createdAt: new Date().toISOString()
       }
+
+      // Save to Firestore so all users can see it
+      await setDoc(doc(db, 'albums', newAlbum.id), {
+        title: newAlbum.title,
+        artist: newAlbum.artist,
+        year: newAlbum.year,
+        coverImageUrl: newAlbum.coverImageUrl,
+        coverPublicId: newAlbum.coverPublicId,
+        tracks: [],
+        createdAt: serverTimestamp()
+      })
 
       persistAdmin({
         ...admin,
