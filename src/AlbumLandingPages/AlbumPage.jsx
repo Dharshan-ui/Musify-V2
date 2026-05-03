@@ -2,8 +2,9 @@ import { useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import SongCard from './SongCard'
+import { db, isFirebaseReady } from '../backend/firebase'
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { getPublicAdminAlbums } from '../utils/adminStore'
-import { getAlbumWithSongs, isMusicStoreReady } from '../utils/musicStore'
 
 const AlbumPage = () => {
   const { id } = useParams()
@@ -15,25 +16,51 @@ const AlbumPage = () => {
     const fetchAlbumData = async () => {
       setLoading(true)
 
-      if (isMusicStoreReady()) {
-        try {
-          const liveAlbum = await getAlbumWithSongs(id)
+      const localAlbum = (await getPublicAdminAlbums()).find((item) => item.id === id)
 
-          if (liveAlbum) {
-            setAlbum(liveAlbum)
-            setSongs(liveAlbum.songs || [])
-            setLoading(false)
-            return
-          }
-        } catch (error) {
-          console.error('Error fetching live album data:', error)
-        }
+      if (localAlbum) {
+        setAlbum(localAlbum)
+        setSongs(localAlbum.songs || [])
+        setLoading(false)
+        return
       }
 
-      const localAlbum = (await getPublicAdminAlbums()).find((item) => item.id === id)
-      setAlbum(localAlbum || null)
-      setSongs(localAlbum?.songs || [])
-      setLoading(false)
+      if (!isFirebaseReady()) {
+        setAlbum(null)
+        setSongs([])
+        setLoading(false)
+        return
+      }
+
+      try {
+        const albumDoc = await getDoc(doc(db, 'albums', id))
+
+        if (albumDoc.exists()) {
+          const albumData = { id: albumDoc.id, ...albumDoc.data() }
+          setAlbum(albumData)
+
+          const songsQuery = query(
+            collection(db, 'songs'),
+            where('albumId', '==', id)
+          )
+          const songsSnapshot = await getDocs(songsQuery)
+          const songsData = songsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+
+          setSongs(songsData)
+        } else {
+          setAlbum(null)
+          setSongs([])
+        }
+      } catch (error) {
+        console.error('Error fetching album data:', error)
+        setAlbum(null)
+        setSongs([])
+      } finally {
+        setLoading(false)
+      }
     }
 
     fetchAlbumData()

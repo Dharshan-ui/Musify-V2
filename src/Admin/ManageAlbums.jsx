@@ -7,20 +7,11 @@ import {
   createId,
   deleteMediaUrl,
   getStoredAdmin,
+  hasAdminPermission,
   resolveMediaUrl,
   saveStoredAdmin
 } from '../utils/adminStore'
 import { uploadToCloudinary } from '../utils/cloudinary'
-import {
-  createAlbumMetadata,
-  createSongMetadata,
-  deleteAlbumMetadata,
-  deleteSongMetadata,
-  isMusicStoreReady,
-  listAlbumsWithSongs,
-  updateAlbumMetadata,
-  updateSongMetadata
-} from '../utils/musicStore'
 
 const inputStyle = {
   height: '52px',
@@ -61,41 +52,8 @@ const ManageAlbums = () => {
   const [editingTrackKey, setEditingTrackKey] = useState('')
   const [trackEditForms, setTrackEditForms] = useState({})
   const [savingEditId, setSavingEditId] = useState('')
-  const [loadingAlbums, setLoadingAlbums] = useState(true)
 
-  const [albums, setAlbums] = useState(() => admin.albums || [])
-
-  useEffect(() => {
-    let isMounted = true
-
-    const loadAlbums = async () => {
-      if (!isMusicStoreReady()) {
-        setLoadingAlbums(false)
-        return
-      }
-
-      try {
-        const firestoreAlbums = await listAlbumsWithSongs()
-
-        if (isMounted) {
-          setAlbums(firestoreAlbums)
-          const savedAdmin = saveStoredAdmin({ ...admin, albums: firestoreAlbums })
-          setAdmin(savedAdmin)
-        }
-      } catch (error) {
-        console.error('Error loading albums:', error)
-        toast.error('Could not load live albums')
-      } finally {
-        if (isMounted) setLoadingAlbums(false)
-      }
-    }
-
-    loadAlbums()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
+  const albums = admin.albums || []
 
   useEffect(() => {
     let isMounted = true
@@ -136,7 +94,6 @@ const ManageAlbums = () => {
   const persistAdmin = (nextAdmin) => {
     const savedAdmin = saveStoredAdmin(nextAdmin)
     setAdmin(savedAdmin)
-    setAlbums(savedAdmin.albums || [])
   }
 
   const startEditAlbum = (album) => {
@@ -165,6 +122,11 @@ const ManageAlbums = () => {
   const handleUpdateAlbum = async (event, albumId) => {
     event.preventDefault()
 
+    if (!hasAdminPermission('create_album')) {
+      toast.error('You do not have permission to edit albums')
+      return
+    }
+
     const album = albums.find((item) => item.id === albumId)
     const editForm = albumEditForms[albumId]
 
@@ -192,17 +154,6 @@ const ManageAlbums = () => {
         coverPublicId = coverUpload.publicId
       }
 
-      if (isMusicStoreReady()) {
-        await updateAlbumMetadata(albumId, {
-          title: editForm.title,
-          artist: editForm.artist,
-          year: Number(editForm.year),
-          coverUrl: coverImageUrl,
-          coverImageUrl,
-          coverPublicId
-        })
-      }
-
       persistAdmin({
         ...admin,
         albums: albums.map((item) => (
@@ -212,7 +163,6 @@ const ManageAlbums = () => {
                 title: editForm.title,
                 artist: editForm.artist,
                 year: Number(editForm.year),
-                coverUrl: coverImageUrl,
                 coverImageUrl,
                 coverPublicId
               }
@@ -258,6 +208,11 @@ const ManageAlbums = () => {
 
   const handleUpdateTrack = async (event, albumId, trackId) => {
     event.preventDefault()
+
+    if (!hasAdminPermission('publish_content')) {
+      toast.error('You do not have permission to edit tracks')
+      return
+    }
 
     const album = albums.find((item) => item.id === albumId)
     const track = album?.tracks?.find((item) => item.id === trackId)
@@ -311,20 +266,6 @@ const ManageAlbums = () => {
         audioPublicId = audioUpload.publicId
       }
 
-      if (isMusicStoreReady()) {
-        await updateSongMetadata(trackId, {
-          title: editForm.title,
-          duration: editForm.duration,
-          genre: editForm.genre,
-          audioUrl: audioFileUrl,
-          audioFileUrl,
-          audioPublicId,
-          songCardImageUrl,
-          songCardPublicId,
-          albumArt: songCardImageUrl || album.coverUrl || album.coverImageUrl || ''
-        })
-      }
-
       persistAdmin({
         ...admin,
         albums: albums.map((item) => (
@@ -338,12 +279,10 @@ const ManageAlbums = () => {
                         title: editForm.title,
                         duration: editForm.duration,
                         genre: editForm.genre,
-                        audioUrl: audioFileUrl,
                         audioFileUrl,
                         audioPublicId,
                         songCardImageUrl,
-                        songCardPublicId,
-                        albumArt: songCardImageUrl
+                        songCardPublicId
                       }
                     : song
                 ))
@@ -363,6 +302,11 @@ const ManageAlbums = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+
+    if (!hasAdminPermission('create_album')) {
+      toast.error('You do not have permission to create albums')
+      return
+    }
 
     if (!coverFile) {
       toast.error('Please select a cover image')
@@ -387,17 +331,10 @@ const ManageAlbums = () => {
         title: formData.title,
         artist: formData.artist,
         year: Number(formData.year),
-        coverUrl: coverUpload.secureUrl,
         coverImageUrl: coverUpload.secureUrl,
         coverPublicId: coverUpload.publicId,
         tracks: [],
-        songs: [],
-        songCount: 0,
         createdAt: new Date().toISOString()
-      }
-
-      if (isMusicStoreReady()) {
-        await createAlbumMetadata(newAlbum)
       }
 
       persistAdmin({
@@ -416,6 +353,11 @@ const ManageAlbums = () => {
   }
 
   const deleteAlbum = async (albumId) => {
+    if (!hasAdminPermission('delete_album')) {
+      toast.error('You do not have permission to delete albums')
+      return
+    }
+
     const albumToDelete = albums.find((album) => album.id === albumId)
 
     if (albumToDelete) {
@@ -426,10 +368,6 @@ const ManageAlbums = () => {
       ]))
     }
 
-    if (isMusicStoreReady()) {
-      await deleteAlbumMetadata(albumId)
-    }
-
     persistAdmin({
       ...admin,
       albums: albums.filter((album) => album.id !== albumId)
@@ -438,6 +376,11 @@ const ManageAlbums = () => {
   }
 
   const deleteTrack = async (albumId, trackId) => {
+    if (!hasAdminPermission('delete_album')) {
+      toast.error('You do not have permission to delete tracks')
+      return
+    }
+
     const album = albums.find((item) => item.id === albumId)
     const track = album?.tracks?.find((item) => item.id === trackId)
 
@@ -446,20 +389,11 @@ const ManageAlbums = () => {
       await deleteMediaUrl(track.songCardImageUrl)
     }
 
-    if (isMusicStoreReady()) {
-      await deleteSongMetadata(albumId, trackId)
-    }
-
     persistAdmin({
       ...admin,
       albums: albums.map((item) => (
         item.id === albumId
-          ? {
-              ...item,
-              tracks: (item.tracks || []).filter((song) => song.id !== trackId),
-              songs: (item.songs || item.tracks || []).filter((song) => song.id !== trackId),
-              songCount: Math.max((item.songCount || item.tracks?.length || 1) - 1, 0)
-            }
+          ? { ...item, tracks: (item.tracks || []).filter((song) => song.id !== trackId) }
           : item
       ))
     })
@@ -497,6 +431,11 @@ const ManageAlbums = () => {
 
   const handleAddTrack = async (event, albumId) => {
     event.preventDefault()
+
+    if (!hasAdminPermission('publish_content')) {
+      toast.error('You do not have permission to publish tracks')
+      return
+    }
 
     const trackForm = trackForms[albumId] || {}
 
@@ -543,29 +482,18 @@ const ManageAlbums = () => {
         id: createId('track'),
         title: trackForm.title,
         duration: trackForm.duration,
-        audioUrl: audioUpload.secureUrl,
         audioFileUrl: audioUpload.secureUrl,
         audioPublicId: audioUpload.publicId,
         songCardImageUrl: songCardUpload.secureUrl,
         songCardPublicId: songCardUpload.publicId,
-        albumArt: songCardUpload.secureUrl,
         genre: trackForm.genre
-      }
-
-      if (isMusicStoreReady()) {
-        await createSongMetadata(album, newTrack)
       }
 
       persistAdmin({
         ...admin,
         albums: albums.map((album) => (
           album.id === albumId
-            ? {
-                ...album,
-                tracks: [...(album.tracks || []), newTrack],
-                songs: [...(album.songs || album.tracks || []), newTrack],
-                songCount: (album.songCount || album.tracks?.length || 0) + 1
-              }
+            ? { ...album, tracks: [...(album.tracks || []), newTrack] }
             : album
         ))
       })
@@ -1272,7 +1200,7 @@ const ManageAlbums = () => {
             ) : (
               <div className="text-center py-8">
                 <p style={{ color: 'var(--color-muted)' }}>
-                  {loadingAlbums ? 'Loading albums...' : 'No albums found. Create your first album above!'}
+                  No albums found. Create your first album above!
                 </p>
               </div>
             )}

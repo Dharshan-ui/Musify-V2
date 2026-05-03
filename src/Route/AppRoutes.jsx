@@ -14,7 +14,6 @@ import AdminDashboard from '../Admin/AdminDashboard'
 import UploadSong from '../Admin/UploadSong'
 import ManageAlbums from '../Admin/ManageAlbums'
 import AdminLogin from '../Admin/AdminLogin'
-import ProtectedAdminRoute from '../Admin/ProtectedAdminRoute'
 import AdminRoute from '../Admin/AdminRoute'
 import AdminUsers from '../Admin/AdminUsers'
 

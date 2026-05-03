@@ -1,18 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 import AdminSidebar from './AdminSidebar'
 import {
   createId,
   getStoredAdmin,
+  hasAdminPermission,
   saveStoredAdmin
 } from '../utils/adminStore'
 import { uploadToCloudinary } from '../utils/cloudinary'
-import {
-  createSongMetadata,
-  isMusicStoreReady,
-  listAlbumsWithSongs
-} from '../utils/musicStore'
 
 const inputStyle = {
   height: '52px',
@@ -46,33 +42,8 @@ const UploadSong = () => {
   const [songCardFile, setSongCardFile] = useState(null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploading, setUploading] = useState(false)
-  const [albums, setAlbums] = useState(() => admin.albums || [])
 
-  useEffect(() => {
-    let isMounted = true
-
-    const loadAlbums = async () => {
-      if (!isMusicStoreReady()) return
-
-      try {
-        const firestoreAlbums = await listAlbumsWithSongs()
-
-        if (isMounted) {
-          setAlbums(firestoreAlbums)
-          setAdmin(saveStoredAdmin({ ...admin, albums: firestoreAlbums }))
-        }
-      } catch (error) {
-        console.error('Error loading albums:', error)
-        toast.error('Could not load live albums')
-      }
-    }
-
-    loadAlbums()
-
-    return () => {
-      isMounted = false
-    }
-  }, [])
+  const albums = admin.albums || []
 
   const handleInputChange = (e) => {
     setFormData({
@@ -97,6 +68,11 @@ const UploadSong = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!hasAdminPermission('publish_content')) {
+      toast.error('You do not have permission to upload songs')
+      return
+    }
 
     if (!formData.albumId) {
       toast.error('Please select an album')
@@ -150,35 +126,23 @@ const UploadSong = () => {
         id: createId('track'),
         title: formData.title,
         duration: formData.duration,
-        audioUrl: audioUpload.secureUrl,
         audioFileUrl: audioUpload.secureUrl,
         audioPublicId: audioUpload.publicId,
         songCardImageUrl: songCardUpload.secureUrl,
         songCardPublicId: songCardUpload.publicId,
-        albumArt: songCardUpload.secureUrl,
         genre: formData.genre
-      }
-
-      if (isMusicStoreReady()) {
-        await createSongMetadata(selectedAlbum, newTrack)
       }
 
       const updatedAdmin = saveStoredAdmin({
         ...admin,
         albums: albums.map((album) => (
           album.id === formData.albumId
-            ? {
-                ...album,
-                tracks: [...(album.tracks || []), newTrack],
-                songs: [...(album.songs || album.tracks || []), newTrack],
-                songCount: (album.songCount || album.tracks?.length || 0) + 1
-              }
+            ? { ...album, tracks: [...(album.tracks || []), newTrack] }
             : album
         ))
       })
 
       setAdmin(updatedAdmin)
-      setAlbums(updatedAdmin.albums || [])
       setUploadProgress(100)
       toast.success('Song added to album!')
       resetForm()
