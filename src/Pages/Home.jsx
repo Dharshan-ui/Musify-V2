@@ -28,27 +28,16 @@ const Home = () => {
       }
 
       try {
-        // Fetch from both 'albums' and legacy 'music_musify' collections
-        const qAlbums = query(
+        const q = query(
           collection(db, 'albums'),
           orderBy('createdAt', 'desc'),
           limit(8)
         )
-        const qLegacy = query(
-          collection(db, 'music_musify'),
-          orderBy('createdAt', 'desc'),
-          limit(8)
-        )
-
-        const [snapA, snapL] = await Promise.all([getDocs(qAlbums), getDocs(qLegacy)])
-
-        // Merge and dedupe by document id (prefer latest data from 'albums')
-        const map = new Map()
-
-        snapL.docs.forEach(d => map.set(d.id, { id: d.id, ...d.data() }))
-        snapA.docs.forEach(d => map.set(d.id, { id: d.id, ...d.data() }))
-
-        const albumsData = Array.from(map.values())
+        const snapshot = await getDocs(q)
+        const albumsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
 
         setAlbums(albumsData)
       } catch (error) {
