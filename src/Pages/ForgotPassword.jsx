@@ -13,6 +13,14 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    if (!auth) {
+      const message = 'Firebase is not configured. Add Firebase environment variables in Vercel.'
+      setErrorMessage(message)
+      toast.error(message)
+      return
+    }
+
     setLoading(true)
     setErrorMessage('')
 

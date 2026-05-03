@@ -27,6 +27,12 @@ const AdminLogin = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+
+    if (!auth) {
+      toast.error('Firebase is not configured. Add Firebase environment variables in Vercel.')
+      return
+    }
+
     setLoading(true)
 
     try {

@@ -20,6 +20,11 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (!auth) {
+      toast.error('Firebase is not configured. Add Firebase environment variables in Vercel.')
+      return
+    }
+
     if (password !== confirmPassword) {
       toast.error('Passwords do not match')
       return
