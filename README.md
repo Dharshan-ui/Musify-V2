@@ -63,4 +63,3 @@ A full-stack music streaming web app built with React 19, Firebase, and Cloudina
 | `VITE_FIREBASE_APP_ID` | Firebase app ID |
 | `VITE_CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
 | `VITE_CLOUDINARY_UPLOAD_PRESET` | Cloudinary upload preset |
-| `VITE_ADMIN_EMAIL` | Email address with admin privileges |
