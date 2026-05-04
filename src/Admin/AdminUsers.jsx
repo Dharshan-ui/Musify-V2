@@ -4,6 +4,7 @@ import AdminSidebar from './AdminSidebar'
 import { getStoredAdmin } from '../utils/adminStore'
 
 const AdminUsers = () => {
+  const isMobile = window.innerWidth < 768
   const admin = getStoredAdmin()
   const canManageUsers = true
 
@@ -19,7 +20,7 @@ const AdminUsers = () => {
       <main
         style={{
           flex: 1,
-          marginLeft: '240px',
+          marginLeft: isMobile ? '0' : '240px',
           padding: '32px',
           overflowY: 'auto'
         }}

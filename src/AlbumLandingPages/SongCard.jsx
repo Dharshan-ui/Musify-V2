@@ -4,6 +4,7 @@ import { Pause, Play, Radio } from 'lucide-react'
 import { useMusic } from '../Context/MusicContext'
 
 const SongCard = ({ songData, trackNumber, album }) => {
+  const isMobile = window.innerWidth < 768
   const [isExpanded, setIsExpanded] = useState(false)
   const { currentSong, isPlaying, playSong, togglePlay } = useMusic()
 
@@ -41,15 +42,15 @@ const SongCard = ({ songData, trackNumber, album }) => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '48px 56px 1fr 92px 120px 48px',
+            gridTemplateColumns: isMobile ? '32px 44px minmax(0, 1fr) 40px' : '48px 56px 1fr 92px 120px 48px',
             alignItems: 'center',
-            gap: '16px'
+            gap: isMobile ? '10px' : '16px'
           }}
         >
           <span
             style={{
-              width: '38px',
-              height: '38px',
+              width: isMobile ? '32px' : '38px',
+              height: isMobile ? '32px' : '38px',
               borderRadius: '12px',
               background: isCurrentSong ? 'rgba(59, 108, 244, 0.18)' : 'rgba(255, 255, 255, 0.05)',
               color: isCurrentSong ? 'var(--color-primary)' : 'var(--color-muted)',
@@ -65,8 +66,8 @@ const SongCard = ({ songData, trackNumber, album }) => {
 
           <div
             style={{
-              width: '56px',
-              height: '56px',
+              width: isMobile ? '44px' : '56px',
+              height: isMobile ? '44px' : '56px',
               borderRadius: '14px',
               overflow: 'hidden',
               background: 'rgba(59, 108, 244, 0.12)',
@@ -120,11 +121,24 @@ const SongCard = ({ songData, trackNumber, album }) => {
                 fontSize: '13px',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
-                textOverflow: 'ellipsis'
+                textOverflow: 'ellipsis',
+                display: isMobile ? 'none' : 'block'
               }}
             >
               {songData.artist}
             </p>
+            {isMobile && (
+              <p
+                style={{
+                  color: 'var(--color-muted)',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  fontVariantNumeric: 'tabular-nums'
+                }}
+              >
+                {songData.duration}
+              </p>
+            )}
           </div>
 
           <span
@@ -132,7 +146,8 @@ const SongCard = ({ songData, trackNumber, album }) => {
               color: 'var(--color-muted)',
               fontSize: '13px',
               fontWeight: '600',
-              fontVariantNumeric: 'tabular-nums'
+              fontVariantNumeric: 'tabular-nums',
+              display: isMobile ? 'none' : 'inline'
             }}
           >
             {songData.duration}
@@ -145,7 +160,8 @@ const SongCard = ({ songData, trackNumber, album }) => {
               fontWeight: '600',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
-              textOverflow: 'ellipsis'
+              textOverflow: 'ellipsis',
+              display: isMobile ? 'none' : 'inline'
             }}
           >
             {songData.genre || songData.size || 'Track'}
@@ -158,8 +174,8 @@ const SongCard = ({ songData, trackNumber, album }) => {
               handlePlay()
             }}
             style={{
-              width: '44px',
-              height: '44px',
+              width: isMobile ? '38px' : '44px',
+              height: isMobile ? '38px' : '44px',
               borderRadius: '999px',
               border: 'none',
               background: isCurrentSong ? 'var(--color-primary)' : 'rgba(59, 108, 244, 0.18)',

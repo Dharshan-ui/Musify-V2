@@ -7,6 +7,7 @@ import { db } from '../backend/firebase'
 import { getStoredAdmin, resolveMediaUrl } from '../utils/adminStore'
 
 const AdminDashboard = () => {
+  const isMobile = window.innerWidth < 768
   const [admin] = useState(() => getStoredAdmin())
   const [albums, setAlbums] = useState([])
   const [coverUrls, setCoverUrls] = useState({})
@@ -71,7 +72,7 @@ const AdminDashboard = () => {
       <main
         style={{
           flex: 1,
-          marginLeft: '240px',
+          marginLeft: isMobile ? '0' : '240px',
           padding: '32px',
           overflowY: 'auto'
         }}

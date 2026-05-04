@@ -33,6 +33,7 @@ const labelStyle = {
 }
 
 const ManageAlbums = () => {
+  const isMobile = window.innerWidth < 768
   const [albums, setAlbums] = useState([])
   const [formData, setFormData] = useState({
     title: '',
@@ -504,13 +505,14 @@ const ManageAlbums = () => {
       <main
         style={{
           flex: 1,
-          marginLeft: '240px',
+          marginLeft: isMobile ? '0' : '240px',
           padding: '32px'
         }}
       >
         <div
           style={{
             display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
             gap: '32px',
             alignItems: 'flex-start'
           }}
@@ -525,7 +527,7 @@ const ManageAlbums = () => {
               borderRadius: '16px',
               padding: '32px',
               width: '100%',
-              maxWidth: '480px'
+              maxWidth: isMobile ? 'none' : '480px'
             }}
           >
             <h1
@@ -638,7 +640,8 @@ const ManageAlbums = () => {
               border: '1px solid var(--color-border)',
               borderRadius: '16px',
               padding: '24px',
-              flex: 1
+              flex: 1,
+              width: '100%'
             }}
           >
             <h2
@@ -702,66 +705,74 @@ const ManageAlbums = () => {
                             {album.artist} - {album.year} - {album.tracks?.length || 0} tracks
                           </p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setActiveTrackAlbumId(isTrackFormOpen ? '' : album.id)}
+                        <div
                           style={{
                             marginLeft: 'auto',
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            background: 'rgba(59, 108, 244, 0.15)',
-                            color: 'var(--color-primary)',
-                            border: '1px solid rgba(59, 108, 244, 0.3)',
-                            borderRadius: '6px',
-                            padding: '6px 12px',
-                            fontSize: '13px',
-                            cursor: 'pointer'
+                            flexWrap: 'wrap',
+                            gap: '8px'
                           }}
                         >
-                          <Plus size={14} />
-                          Track
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => startEditAlbum(album)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            background: 'rgba(255, 255, 255, 0.06)',
-                            color: 'var(--color-text)',
-                            border: '1px solid var(--color-border)',
-                            borderRadius: '6px',
-                            padding: '6px 12px',
-                            fontSize: '13px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <Pencil size={14} />
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfirmDelete({
-                            type: 'album',
-                            albumId: album.id,
-                            title: album.title,
-                            message: `Delete album "${album.title}" and all of its tracks?`
-                          })}
-                          style={{
-                            background: 'rgba(239, 68, 68, 0.15)',
-                            color: '#f87171',
-                            border: '1px solid rgba(239, 68, 68, 0.3)',
-                            borderRadius: '6px',
-                            padding: '6px 12px',
-                            fontSize: '13px',
-                            cursor: 'pointer'
-                          }}
-                          aria-label={`Delete ${album.title}`}
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTrackAlbumId(isTrackFormOpen ? '' : album.id)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              background: 'rgba(59, 108, 244, 0.15)',
+                              color: 'var(--color-primary)',
+                              border: '1px solid rgba(59, 108, 244, 0.3)',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '13px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <Plus size={14} />
+                            Track
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => startEditAlbum(album)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              background: 'rgba(255, 255, 255, 0.06)',
+                              color: 'var(--color-text)',
+                              border: '1px solid var(--color-border)',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '13px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <Pencil size={14} />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDelete({
+                              type: 'album',
+                              albumId: album.id,
+                              title: album.title,
+                              message: `Delete album "${album.title}" and all of its tracks?`
+                            })}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              color: '#f87171',
+                              border: '1px solid rgba(239, 68, 68, 0.3)',
+                              borderRadius: '6px',
+                              padding: '6px 12px',
+                              fontSize: '13px',
+                              cursor: 'pointer'
+                            }}
+                            aria-label={`Delete ${album.title}`}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
                       </div>
 
                       {editingAlbumId === album.id && (
@@ -886,62 +897,86 @@ const ManageAlbums = () => {
                             >
                               <div
                                 style={{
-                                  display: 'grid',
-                                  gridTemplateColumns: '1fr 90px 120px 40px 40px',
-                                  alignItems: 'center',
+                                  display: 'flex',
+                                  flexDirection: isMobile ? 'column' : 'row',
+                                  alignItems: isMobile ? 'stretch' : 'center',
                                   gap: '12px',
                                   color: 'var(--color-muted)',
                                   fontSize: '13px',
                                   padding: '8px 0'
                                 }}
                               >
-                                <span style={{ color: 'var(--color-text)' }}>{track.title}</span>
-                                <span>{track.duration}</span>
-                                <span>{track.genre}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => startEditTrack(album.id, track)}
+                                <span
                                   style={{
-                                    width: '32px',
-                                    height: '32px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    background: 'rgba(255, 255, 255, 0.06)',
                                     color: 'var(--color-text)',
-                                    border: '1px solid var(--color-border)',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer'
+                                    flex: 1,
+                                    width: isMobile ? '100%' : 'auto'
                                   }}
-                                  aria-label={`Edit ${track.title}`}
                                 >
-                                  <Pencil size={14} />
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setConfirmDelete({
-                                    type: 'track',
-                                    albumId: album.id,
-                                    trackId: track.id,
-                                    title: track.title,
-                                    message: `Delete song "${track.title}" from "${album.title}"?`
-                                  })}
+                                  {track.title}
+                                </span>
+                                <div
                                   style={{
-                                    width: '32px',
-                                    height: '32px',
                                     display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    background: 'rgba(239, 68, 68, 0.15)',
-                                    color: '#f87171',
-                                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                                    borderRadius: '6px',
-                                    cursor: 'pointer'
+                                    gap: '12px',
+                                    width: isMobile ? '100%' : '210px'
                                   }}
-                                  aria-label={`Delete ${track.title}`}
                                 >
-                                  <Trash2 size={14} />
-                                </button>
+                                  <span>{track.duration}</span>
+                                  <span>{track.genre}</span>
+                                </div>
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    gap: '8px',
+                                    width: isMobile ? '100%' : '80px'
+                                  }}
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => startEditTrack(album.id, track)}
+                                    style={{
+                                      width: isMobile ? '28px' : '32px',
+                                      height: isMobile ? '28px' : '32px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      background: 'rgba(255, 255, 255, 0.06)',
+                                      color: 'var(--color-text)',
+                                      border: '1px solid var(--color-border)',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer'
+                                    }}
+                                    aria-label={`Edit ${track.title}`}
+                                  >
+                                    <Pencil size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setConfirmDelete({
+                                      type: 'track',
+                                      albumId: album.id,
+                                      trackId: track.id,
+                                      title: track.title,
+                                      message: `Delete song "${track.title}" from "${album.title}"?`
+                                    })}
+                                    style={{
+                                      width: isMobile ? '28px' : '32px',
+                                      height: isMobile ? '28px' : '32px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      background: 'rgba(239, 68, 68, 0.15)',
+                                      color: '#f87171',
+                                      border: '1px solid rgba(239, 68, 68, 0.3)',
+                                      borderRadius: '6px',
+                                      cursor: 'pointer'
+                                    }}
+                                    aria-label={`Delete ${track.title}`}
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
                               </div>
 
                               {editingTrackKey === trackKey && (

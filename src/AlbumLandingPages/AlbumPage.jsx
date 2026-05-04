@@ -7,6 +7,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import { getPublicAdminAlbums } from '../utils/adminStore'
 
 const AlbumPage = () => {
+  const isMobile = window.innerWidth < 768
   const { id } = useParams()
   const [album, setAlbum] = useState(null)
   const [songs, setSongs] = useState([])
@@ -95,19 +96,20 @@ const AlbumPage = () => {
           transition={{ duration: 0.4 }}
           style={{
             display: 'flex',
-            flexDirection: 'row',
-            gap: '40px',
-            alignItems: 'flex-end',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: isMobile ? '24px' : '40px',
+            alignItems: isMobile ? 'center' : 'flex-end',
             padding: '32px',
-            marginBottom: '32px'
+            marginBottom: '32px',
+            textAlign: isMobile ? 'center' : 'left'
           }}
         >
           <img
             src={album.coverImageUrl}
             alt={album.title}
             style={{
-              width: '220px',
-              height: '220px',
+              width: isMobile ? '180px' : '220px',
+              height: isMobile ? '180px' : '220px',
               borderRadius: '16px',
               objectFit: 'cover',
               flexShrink: 0,
@@ -129,7 +131,7 @@ const AlbumPage = () => {
             </p>
             <h1
               style={{
-                fontSize: '42px',
+                fontSize: isMobile ? '32px' : '42px',
                 fontWeight: '800',
                 color: 'var(--color-text)',
                 marginBottom: '8px',
@@ -144,7 +146,9 @@ const AlbumPage = () => {
                 fontSize: '15px',
                 display: 'flex',
                 gap: '8px',
-                alignItems: 'center'
+                alignItems: 'center',
+                justifyContent: isMobile ? 'center' : 'flex-start',
+                flexWrap: 'wrap'
               }}
             >
               <span>{album.artist}</span>

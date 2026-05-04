@@ -30,6 +30,7 @@ const labelStyle = {
 }
 
 const UploadSong = () => {
+  const isMobile = window.innerWidth < 768
   const [albums, setAlbums] = useState([])
   const [formData, setFormData] = useState({
     title: '',
@@ -194,9 +195,9 @@ const UploadSong = () => {
       <main
         style={{
           flex: 1,
-          marginLeft: '240px',
+          marginLeft: isMobile ? '0' : '240px',
           padding: '32px',
-          maxWidth: 'calc(100vw - 240px)'
+          maxWidth: isMobile ? 'none' : 'calc(100vw - 240px)'
         }}
       >
         <motion.div
@@ -208,7 +209,8 @@ const UploadSong = () => {
             border: '1px solid var(--color-border)',
             borderRadius: '16px',
             padding: '32px',
-            maxWidth: '600px'
+            width: '100%',
+            maxWidth: isMobile ? 'none' : '600px'
           }}
         >
           <h1
