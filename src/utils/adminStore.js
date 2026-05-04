@@ -1,3 +1,5 @@
+import { auth } from '../backend/firebase'
+
 const ADMIN_STORAGE_KEY = 'musify_admin'
 const ADMIN_SESSION_KEY = 'musify_admin_session'
 const MEDIA_DB_NAME = 'musify_media_db'
@@ -223,6 +225,10 @@ export function getAdminSession() {
 export function isAdminAuthenticated() {
   const session = getAdminSession()
   return session?.role === 'admin'
+}
+
+export function isAdmin() {
+  return auth.currentUser?.email === import.meta.env.VITE_ADMIN_EMAIL
 }
 
 export function hasAdminPermission() {

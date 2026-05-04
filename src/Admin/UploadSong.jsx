@@ -185,7 +185,6 @@ const UploadSong = () => {
   return (
     <div
       style={{
-        display: 'flex',
         minHeight: '100vh',
         paddingTop: '64px'
       }}

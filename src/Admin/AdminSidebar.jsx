@@ -22,6 +22,7 @@ const AdminSidebar = () => {
 
   return (
     <aside
+      className="hidden md:flex"
       style={{
         position: 'fixed',
         left: 0,
@@ -32,7 +33,6 @@ const AdminSidebar = () => {
         background: 'rgba(10, 10, 26, 0.95)',
         backdropFilter: 'blur(12px)',
         borderRight: '1px solid var(--color-border)',
-        display: 'flex',
         flexDirection: 'column',
         padding: '24px 0',
         zIndex: 40

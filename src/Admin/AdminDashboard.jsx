@@ -62,8 +62,6 @@ const AdminDashboard = () => {
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'row',
         minHeight: '100vh',
         paddingTop: '64px'
       }}
@@ -103,7 +101,7 @@ const AdminDashboard = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
             gap: '24px',
             marginBottom: '32px'
           }}

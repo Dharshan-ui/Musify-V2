@@ -10,8 +10,6 @@ const AdminUsers = () => {
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'row',
         minHeight: '100vh',
         paddingTop: '64px'
       }}
