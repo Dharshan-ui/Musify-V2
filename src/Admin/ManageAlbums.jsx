@@ -33,7 +33,7 @@ const labelStyle = {
 }
 
 const ManageAlbums = () => {
-  const isMobile = window.innerWidth < 768
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [albums, setAlbums] = useState([])
   const [formData, setFormData] = useState({
     title: '',
@@ -52,6 +52,12 @@ const ManageAlbums = () => {
   const [editingTrackKey, setEditingTrackKey] = useState('')
   const [trackEditForms, setTrackEditForms] = useState({})
   const [savingEditId, setSavingEditId] = useState('')
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   useEffect(() => {
     const loadAlbums = async () => {

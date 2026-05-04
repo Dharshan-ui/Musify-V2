@@ -1,12 +1,19 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ShieldCheck, UserRound } from 'lucide-react'
 import AdminSidebar from './AdminSidebar'
 import { getStoredAdmin } from '../utils/adminStore'
 
 const AdminUsers = () => {
-  const isMobile = window.innerWidth < 768
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const admin = getStoredAdmin()
   const canManageUsers = true
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   return (
     <div

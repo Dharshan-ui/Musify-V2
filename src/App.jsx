@@ -3,6 +3,7 @@ import { Play, Pause, SkipBack, SkipForward, Music2, X } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Navbar from './NavBar_Block/Navbar'
 import { Outlet } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 
 const formatTime = (value) => {
   if (!Number.isFinite(value) || value <= 0) return '0:00'
@@ -14,6 +15,7 @@ const formatTime = (value) => {
 }
 
 function MiniPlayer() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const {
     currentSong,
     currentAlbum,
@@ -27,6 +29,12 @@ function MiniPlayer() {
     prevSong
   } = useMusic()
 
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+
   if (!currentSong) return null
 
   const progress = duration ? (currentTime / duration) * 100 : 0
@@ -39,46 +47,74 @@ function MiniPlayer() {
       transition={{ type: 'spring', stiffness: 260, damping: 28 }}
       className="fixed bottom-0 left-0 right-0 z-40"
       style={{
-        padding: '0 24px 22px',
+        padding: isMobile ? '12px 16px' : '0 24px 22px',
+        background: '#0a0a1a',
+        borderTop: '1px solid var(--color-border)',
+        boxShadow: '0 -4px 20px rgba(0,0,0,0.5)',
+        position: 'relative',
         pointerEvents: 'none'
       }}
     >
-      <div
-        style={{
-          maxWidth: '1180px',
-          margin: '0 auto',
-          pointerEvents: 'auto',
-          position: 'relative',
-          background: 'linear-gradient(135deg, rgba(15, 15, 46, 0.92), rgba(22, 16, 58, 0.9))',
-          backdropFilter: 'blur(24px)',
-          border: '1px solid rgba(148, 163, 184, 0.18)',
-          borderRadius: '24px',
-          boxShadow: '0 24px 80px rgba(0, 0, 0, 0.45), 0 0 44px rgba(59, 108, 244, 0.24)',
-          padding: '18px 22px'
-        }}
-      >
+      {isMobile && (
         <button
           type="button"
           onClick={closePlayer}
           aria-label="Close player"
           className="player-close-button"
+          style={{
+            position: 'absolute',
+            top: '8px',
+            right: '12px',
+            width: '24px',
+            height: '24px',
+            pointerEvents: 'auto'
+          }}
         >
-          <X size={18} />
+          <X size={14} />
         </button>
+      )}
+
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1180px',
+          margin: '0 auto',
+          boxSizing: 'border-box',
+          pointerEvents: 'auto',
+          position: 'relative',
+          zIndex: 100,
+          background: isMobile ? 'transparent' : 'rgba(15, 15, 46, 0.95)',
+          backdropFilter: isMobile ? 'none' : 'blur(20px)',
+          border: isMobile ? 'none' : '1px solid var(--color-border)',
+          borderRadius: isMobile ? '18px' : '24px',
+          boxShadow: '0 24px 80px rgba(0, 0, 0, 0.45), 0 0 44px rgba(59, 108, 244, 0.24)',
+          padding: isMobile ? '12px 14px' : '18px 22px'
+        }}
+      >
+        {!isMobile && (
+          <button
+            type="button"
+            onClick={closePlayer}
+            aria-label="Close player"
+            className="player-close-button"
+          >
+            <X size={18} />
+          </button>
+        )}
 
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(220px, 1fr) minmax(360px, 1.35fr) minmax(180px, 0.8fr)',
-            gap: '24px',
+            gridTemplateColumns: isMobile ? 'minmax(0, 1fr) 116px' : 'minmax(220px, 1fr) minmax(360px, 1.35fr) minmax(180px, 0.8fr)',
+            gap: isMobile ? '12px' : '24px',
             alignItems: 'center'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: 0 }}>
             <div
               style={{
-                width: '74px',
-                height: '74px',
+                width: isMobile ? '52px' : '74px',
+                height: isMobile ? '52px' : '74px',
                 borderRadius: '18px',
                 overflow: 'hidden',
                 flexShrink: 0,
@@ -121,7 +157,8 @@ function MiniPlayer() {
                   fontWeight: '700',
                   letterSpacing: '1px',
                   textTransform: 'uppercase',
-                  marginBottom: '6px'
+                  marginBottom: '6px',
+                  display: isMobile ? 'none' : 'block'
                 }}
               >
                 Now Playing
@@ -129,7 +166,7 @@ function MiniPlayer() {
               <h4
                 style={{
                   color: 'var(--color-text)',
-                  fontSize: '17px',
+                  fontSize: isMobile ? '15px' : '17px',
                   fontWeight: '700',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
@@ -142,7 +179,7 @@ function MiniPlayer() {
               <p
                 style={{
                   color: 'var(--color-muted)',
-                  fontSize: '14px',
+                  fontSize: isMobile ? '13px' : '14px',
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis'
@@ -159,8 +196,8 @@ function MiniPlayer() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '14px',
-                marginBottom: '14px'
+                gap: isMobile ? '6px' : '14px',
+                marginBottom: isMobile ? 0 : '14px'
               }}
             >
               <button
@@ -168,6 +205,10 @@ function MiniPlayer() {
                 onClick={prevSong}
                 className="player-icon-button"
                 aria-label="Previous song"
+                style={{
+                  width: isMobile ? '32px' : undefined,
+                  height: isMobile ? '32px' : undefined
+                }}
               >
                 <SkipBack size={21} />
               </button>
@@ -176,6 +217,10 @@ function MiniPlayer() {
                 onClick={togglePlay}
                 className="player-play-button"
                 aria-label={isPlaying ? 'Pause' : 'Play'}
+                style={{
+                  width: isMobile ? '40px' : undefined,
+                  height: isMobile ? '40px' : undefined
+                }}
               >
                 {isPlaying ? <Pause size={25} fill="white" /> : <Play size={25} fill="white" />}
               </button>
@@ -184,6 +229,10 @@ function MiniPlayer() {
                 onClick={nextSong}
                 className="player-icon-button"
                 aria-label="Next song"
+                style={{
+                  width: isMobile ? '32px' : undefined,
+                  height: isMobile ? '32px' : undefined
+                }}
               >
                 <SkipForward size={21} />
               </button>
@@ -191,7 +240,7 @@ function MiniPlayer() {
 
             <div
               style={{
-                display: 'grid',
+                display: isMobile ? 'none' : 'grid',
                 gridTemplateColumns: '48px 1fr 48px',
                 gap: '12px',
                 alignItems: 'center'
@@ -219,6 +268,7 @@ function MiniPlayer() {
 
           <div
             style={{
+              display: isMobile ? 'none' : 'block',
               justifySelf: 'end',
               minWidth: 0,
               textAlign: 'right'
@@ -260,6 +310,24 @@ function MiniPlayer() {
             </p>
           </div>
         </div>
+
+        {isMobile && (
+          <input
+            type="range"
+            min="0"
+            max={duration || 0}
+            step="0.1"
+            value={duration ? currentTime : 0}
+            onChange={(event) => seekTo(event.target.value)}
+            className="player-range"
+            style={{
+              '--progress': `${progress}%`,
+              height: '3px',
+              marginTop: '10px'
+            }}
+            aria-label="Seek through song"
+          />
+        )}
       </div>
     </motion.div>
   )

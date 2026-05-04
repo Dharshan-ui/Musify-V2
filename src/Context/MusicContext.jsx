@@ -54,7 +54,7 @@ export const MusicProvider = ({ children }) => {
 
     if (album) {
       setCurrentAlbum(album)
-      setQueue(album.songs || [])
+      setQueue(album.tracks || album.songs || [])
     }
 
     const audio = new Audio(audioSource)
@@ -101,7 +101,7 @@ export const MusicProvider = ({ children }) => {
   const nextSong = () => {
     if (!currentAlbum || !currentSong) return
 
-    const songs = currentAlbum.songs || queue
+    const songs = currentAlbum.tracks || currentAlbum.songs || queue
     if (!songs?.length) return
 
     const currentIndex = songs.findIndex(s => s.id === currentSong.id)
@@ -113,7 +113,7 @@ export const MusicProvider = ({ children }) => {
   const prevSong = () => {
     if (!currentAlbum || !currentSong) return
 
-    const songs = currentAlbum.songs || queue
+    const songs = currentAlbum.tracks || currentAlbum.songs || queue
     if (!songs?.length) return
 
     const currentIndex = songs.findIndex(s => s.id === currentSong.id)

@@ -7,11 +7,17 @@ import { doc, getDoc } from 'firebase/firestore'
 import { getPublicAdminAlbums } from '../utils/adminStore'
 
 const AlbumPage = () => {
-  const isMobile = window.innerWidth < 768
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const { id } = useParams()
   const [album, setAlbum] = useState(null)
   const [songs, setSongs] = useState([])
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   useEffect(() => {
     const fetchAlbumData = async () => {

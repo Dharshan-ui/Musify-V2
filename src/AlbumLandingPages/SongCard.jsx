@@ -1,12 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Pause, Play, Radio } from 'lucide-react'
 import { useMusic } from '../Context/MusicContext'
 
 const SongCard = ({ songData, trackNumber, album }) => {
-  const isMobile = window.innerWidth < 768
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [isExpanded, setIsExpanded] = useState(false)
   const { currentSong, isPlaying, playSong, togglePlay } = useMusic()
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   const isCurrentSong = currentSong?.id === songData.id
 
