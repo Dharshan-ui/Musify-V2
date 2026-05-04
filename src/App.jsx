@@ -52,7 +52,8 @@ function MiniPlayer() {
         borderTop: '1px solid var(--color-border)',
         boxShadow: '0 -4px 20px rgba(0,0,0,0.5)',
         position: 'relative',
-        pointerEvents: 'none'
+        zIndex: 150,
+        pointerEvents: 'auto'
       }}
     >
       {isMobile && (
@@ -65,12 +66,15 @@ function MiniPlayer() {
             position: 'absolute',
             top: '8px',
             right: '12px',
-            width: '24px',
-            height: '24px',
+            width: '36px',
+            height: '36px',
+            padding: '6px',
+            touchAction: 'manipulation',
+            zIndex: 200,
             pointerEvents: 'auto'
           }}
         >
-          <X size={14} />
+          <X size={16} />
         </button>
       )}
 
@@ -123,13 +127,14 @@ function MiniPlayer() {
                 boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
               }}
             >
-              {currentSong.albumArt ? (
+              {currentSong.songCardImageUrl ? (
                 <img
-                  src={currentSong.albumArt}
+                  src={currentSong.songCardImageUrl}
                   alt={currentSong.title}
                   style={{
                     width: '100%',
                     height: '100%',
+                    borderRadius: '8px',
                     objectFit: 'cover'
                   }}
                 />
