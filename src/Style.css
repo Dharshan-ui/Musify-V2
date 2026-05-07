@@ -211,3 +211,27 @@ body {
   border: 3px solid var(--color-primary);
   box-shadow: 0 0 16px rgba(59, 108, 244, 0.5);
 }
+
+.profile-mobile-nav {
+  display: flex;
+  overflow-x: auto;
+  white-space: nowrap;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(10, 10, 26, 0.95);
+}
+
+.profile-desktop-sidebar {
+  display: none;
+}
+
+.profile-main {
+  padding: 32px;
+}
+
+@media (min-width: 768px) {
+  .profile-mobile-nav { display: none; }
+  .profile-desktop-sidebar { display: block; }
+  .profile-main { margin-left: 240px; }
+}

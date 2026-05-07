@@ -75,7 +75,7 @@ const EditProfile = () => {
   return (
     <div style={{ minHeight: '100vh', paddingTop: '64px' }}>
       <ProfileSidebar />
-      <main className="md:ml-[240px]" style={{ padding: '32px' }}>
+      <main className="md:ml-[270px]" style={{ padding: '32px' }}>
         <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{
           fontSize: '32px', fontWeight: '700', textAlign: 'center', marginBottom: '8px',
           background: 'linear-gradient(135deg, var(--color-secondary), var(--color-accent))',

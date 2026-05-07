@@ -114,21 +114,22 @@ const dangerButton = { marginTop: '18px', background: 'rgba(239,68,68,0.15)', bo
 const defaultSettings = () => ({ volume: localStorage.getItem('musify_volume') || 70, autoplay: true, audio0: false, audio1: false, audio2: true, compact: false, albumArt: true, privacy0: false, privacy1: true, privacy2: true, notice0: true, notice1: true, notice2: false })
 
 const Settings = () => {
+  const isMobile = window.innerWidth < 768
   const [active, setActive] = useState('audio')
   const [values, setValues] = useState(defaultSettings)
 
   return (
     <div style={{ minHeight: '100vh', paddingTop: '64px' }}>
       <ProfileSidebar />
-      <main className="md:ml-[240px]" style={{ padding: '32px' }}>
+      <main style={{ padding: '32px', marginLeft: isMobile ? '0' : '240px' }}>
         <h1 style={{
           fontSize: '32px', fontWeight: '700', textAlign: 'center', marginBottom: '8px',
           background: 'linear-gradient(135deg, var(--color-secondary), var(--color-accent))',
           WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent'
         }}>Settings</h1>
         <p style={{ color: 'var(--color-muted)', textAlign: 'center', marginBottom: '32px' }}>Customize your music experience</p>
-        <div style={{ display: 'flex', gap: '24px' }}>
-          <nav style={{ width: '220px', padding: '16px', borderRadius: '16px', background: 'rgba(15,15,46,0.6)', border: '1px solid var(--color-border)' }}>
+        <div style={{ display: 'flex', gap: '24px', flexDirection: isMobile ? 'column' : 'row' }}>
+          <nav style={{ width: isMobile ? '100%' : '220px', padding: '16px', borderRadius: '16px', background: 'rgba(15,15,46,0.6)', border: '1px solid var(--color-border)' }}>
             {tabs.map(([key, label, Icon]) => (
               <button key={key} onClick={() => setActive(key)} style={{
                 width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px',

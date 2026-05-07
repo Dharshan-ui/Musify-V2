@@ -55,7 +55,7 @@ const ProfilePage = () => {
   return (
     <div style={{ minHeight: '100vh', paddingTop: '64px' }}>
       <ProfileSidebar />
-      <main className="md:ml-[240px]" style={{ padding: '32px' }}>
+      <main style={{ padding: '32px', marginLeft: window.innerWidth >= 768 ? '240px' : '0' }}>
         <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <div
             style={{
@@ -113,13 +113,13 @@ const ProfilePage = () => {
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--color-text)', marginBottom: '20px' }}>
             Profile Information
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+          <div className="grid [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))] max-[399px]:[grid-template-columns:1fr_1fr]" style={{ gap: '16px' }}>
             {fields.map(([label, key]) => (
-              <div key={key} style={{ background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--color-border)', borderRadius: '10px', padding: '16px' }}>
+              <div key={key} style={{ background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--color-border)', borderRadius: '10px', padding: '16px', height: 'auto' }}>
                 <div style={{ fontSize: '11px', fontWeight: '600', color: 'var(--color-muted)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
                   {label}
                 </div>
-                <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--color-text)' }}>{getValue(key)}</div>
+                <div style={{ fontSize: '15px', fontWeight: '600', color: 'var(--color-text)', wordBreak: 'break-word' }}>{getValue(key)}</div>
               </div>
             ))}
           </div>

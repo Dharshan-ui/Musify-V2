@@ -66,7 +66,7 @@ const ChangePassword = () => {
   return (
     <div style={{ minHeight: '100vh', paddingTop: '64px' }}>
       <ProfileSidebar />
-      <main className="md:ml-[240px]" style={{ minHeight: 'calc(100vh - 64px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main className="md:ml-[270px]" style={{ minHeight: 'calc(100vh - 64px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <form onSubmit={handleSubmit} style={{
           width: '400px', padding: '40px', borderRadius: '16px', textAlign: 'center',
           background: 'rgba(15, 15, 46, 0.6)', backdropFilter: 'blur(20px)', border: '1px solid var(--color-border)'

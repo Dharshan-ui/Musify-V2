@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth'
 import { auth } from '../backend/firebase'
 
 const fieldStyle = {
@@ -31,6 +31,11 @@ const AdminLogin = () => {
 
     try {
       await signInWithEmailAndPassword(auth, identifier.trim(), password)
+      await new Promise((resolve) => {
+        const unsub = onAuthStateChanged(auth, (user) => {
+          if (user) { unsub(); resolve(); }
+        })
+      })
       toast.success('Admin signed in')
       navigate('/admin')
     } catch (error) {
